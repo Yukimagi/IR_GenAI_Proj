@@ -204,7 +204,8 @@
                         <button onclick="submit_news()" class="a4">開始</button>
                     </div>
                 </div>
-
+                <!-- 爬蟲狀態訊息顯示 -->
+                <div id="loading_message" style="display: none; color: blue;">正在爬蟲請稍後...</div>
                 <!--<div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>-->
             </div>
         </div>
@@ -261,6 +262,9 @@
                 return;
             }
     
+            // 顯示「爬蟲中」的訊息
+            document.getElementById("loading_message").style.display = "block";
+    
             $.ajax({
                 url: "/fetch_news",
                 type: "POST",
@@ -271,11 +275,19 @@
                     pages: parseInt(newsPages)
                 }),
                 success: function (result) {
+                    // 隱藏「爬蟲中」的訊息
+                    document.getElementById("loading_message").style.display = "none";
+    
                     if (result.message === "success") {
                         alert("新聞資料更新成功！");
                     } else {
                         alert(result.message);
                     }
+                },
+                error: function () {
+                    // 隱藏「爬蟲中」的訊息並顯示錯誤提示
+                    document.getElementById("loading_message").style.display = "none";
+                    alert("發生錯誤，請稍後再試！");
                 }
             });
         }

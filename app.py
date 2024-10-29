@@ -45,18 +45,18 @@ def fetch_news():
 
     # 確定執行的腳本名稱
     script_map = {
-        ("chinatimes", "stock"): "test1.py",
-        ("chinatimes", "health"): "test2.py",
-        ("chinatimes", "sports"): "test3.py",
-        ("liberty", "stock"): "test4.py",
-        ("liberty", "health"): "test5.py",
-        ("liberty", "sports"): "test6.py",
-        ("tvbs", "stock"): "test7.py",
-        ("tvbs", "health"): "test8.py",
-        ("tvbs", "sports"): "test9.py",
-        ("api", "stock"): "test10.py",
-        ("api", "health"): "test11.py",
-        ("api", "sports"): "test12.py"
+        ("chinatimes", "stock"): "Proj_ChinaTimes/Proj_ChinaTimes_Stock.py",
+        ("chinatimes", "health"): "Proj_ChinaTimes/Proj_ChinaTimes_health.py",
+        ("chinatimes", "sports"): "Proj_ChinaTimes/Proj_ChinaTimes_sports.py",
+        ("liberty", "stock"): "Proj_ltn/Proj_ltn_Stock.py",
+        ("liberty", "health"): "Proj_ltn/Proj_ltn_health.py",
+        ("liberty", "sports"): "Proj_ltn/Proj_ltn_sports.py",
+        ("tvbs", "stock"): "Proj_tvbs/Proj_tvbs_Stock.py",
+        ("tvbs", "health"): "Proj_tvbs/Proj_tvbs_health.py",
+        ("tvbs", "sports"): "Proj_tvbs/Proj_tvbs_sports.py",
+        ("api", "stock"): "Proj_API/stock_API_news.py",
+        ("api", "health"): "Proj_API/health_API_news.py",
+        ("api", "sports"): "Proj_API/sport_API_news.py"
     }
     
     script_name = script_map.get((company, topic))

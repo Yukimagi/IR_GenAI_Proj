@@ -1,4 +1,4 @@
-# Website for Better Training and Testing
+# IR_GenAI Project
 
 ## Set Up
 To set up the project, follow these steps:
@@ -6,7 +6,7 @@ To set up the project, follow these steps:
     ```sh
     pip install -r requirements.txt
     ```
-2. Create a `.env` file
+2. Create a要放入所有Proj_*資料夾中 `.env` file (env1內的.env為資料庫1，2則為資料庫2，你可以替換.env成你需要的資料庫)
 3. Store `GEMINI_API_KEY='your api key'` in it.(please get api here:https://ai.google.dev/)
 4. Store `NEWS_API_KEY='your api key'` in it.(please get api here: https://newsapi.org/)
 5. Store `SUPABASE_URL=https://pwwpdkqppibpltojdsgu.supabase.co'` in it.
