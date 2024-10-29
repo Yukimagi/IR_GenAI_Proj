@@ -143,7 +143,7 @@ def fetch_news_tvbs(stock_id, stock_name, start_page, end_page):
 def check_news_count(stock_id, news_date):
     """檢查特定日期是否已儲存3則新聞"""
     try:
-        response = supabase.table('stock_news_test').select('id').eq('stockID', stock_id).eq('date', news_date).execute()
+        response = supabase.table('stock_news').select('id').eq('stockID', stock_id).eq('date', news_date).execute()
         if response.data:
             return len(response.data)  # 返回已儲存的新聞數量
         return 0
@@ -246,7 +246,7 @@ for current_page in range(1, 1501, 3):  # 每次迭代爬取3页
                     continue
                 
                 # 儲存到 Supabase
-                supabase.table("stock_news_test").insert({
+                supabase.table("stock_news").insert({
                     "stockID": int(stock_id),
                     "title": news["headline"],
                     "date": news["date"],

@@ -30,6 +30,12 @@ from google.ai.generativelanguage_v1 import HarmCategory
 
 import datetime
 
+import io
+
+# 設置標準輸出的編碼
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+
 # Load environment variables
 load_dotenv()
 
@@ -183,11 +189,11 @@ def main():
         print(f"Fetched {len(news_list)} news articles")
 
         for news in news_list:
-            title = news.get("title", "No Title")
-            content = news.get("content", "No Content")
-            news_date = news.get("publishedAt", "No Date")  # 更新日期欄位
-            news_url = news.get("url", "No URL")  # 更新 URL 欄位
-            source_id = news.get("source", {}).get("name", "Unknown")  # 提取 source id
+            title = news.get("title", "No Title").replace('\xa0', ' ')
+            content = news.get("content", "No Content").replace('\xa0', ' ')
+            news_date = news.get("publishedAt", "No Date").replace('\xa0', ' ')  # 更新日期欄位
+            news_url = news.get("url", "No URL").replace('\xa0', ' ')  # 更新 URL 欄位
+            source_id = news.get("source", {}).get("name", "Unknown").replace('\xa0', ' ')  # 提取 source id
             
             # 打印新聞細節
             print(f"Title: {title}")

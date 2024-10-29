@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import subprocess
 import os
+import logging
 
 current_file_path = os.path.abspath(__file__)
 

@@ -148,7 +148,7 @@ def fetch_news_chinatime(health_id, health_name, start_page, end_page):
 def check_news_count(health_id, news_date):
     """檢查特定日期是否已儲存3則新聞"""
     try:
-        response = supabase.table('health_news_test').select('id').eq('healthID', health_id).eq('date', news_date).execute()
+        response = supabase.table('health_news').select('id').eq('healthID', health_id).eq('date', news_date).execute()
         if response.data:
             return len(response.data)  # 返回已儲存的新聞數量
         return 0
@@ -253,7 +253,7 @@ for current_page in range(1, pages+1, 3):  # 每次迭代爬取3页
                     continue
                 
                 # 儲存到 Supabase
-                supabase.table("health_news_test").insert({
+                supabase.table("health_news").insert({
                     "healthID": int(health_id),
                     "title": news["headline"],
                     "date": news["date"],
