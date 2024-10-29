@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Predict_Gen-AI Stock Master</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="../static/assets/favicon.ico" />
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet"
+        type="text/css" />
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"
+        rel="stylesheet" type="text/css" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="../static/css/styles.css" rel="stylesheet" />
+    <style>
+        .a1 {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .a2 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .a2 label {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            /* Adjust the color as needed */
+            margin-bottom: 10px;
+        }
+
+        .a3 {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .a4 {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #272727;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .a4:hover {
+            background-color: #9D9D9D;
+        }
+
+        #promptInput {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #f0f0f0;
+            /* Adjust the background color as needed */
+            border: none;
+            /* Remove the border */
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Add shadow */
+        }
+
+        #loadingMessage {
+            font-size: 16px;
+            color: #555;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="index.html">Gen-AI Stock Master</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="crawl.html">Crawl</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="model.html">Model</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="predict.html">Predict</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Page Header-->
+    <header class="masthead" style="background-image: url('../static/assets/img/home-bg.jpg')">
+        <div class="container position-relative px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <div class="post-heading">
+                        <h1>Trend Prediction</h1>
+                        <h2 class="subheading">透過自定義提示進行股票預測。</h2>
+                        <!--<span class="meta">
+                            Posted by
+                            <a href="post.htnl">Gen-AI Stock Master Team</a>
+                            on May 12, 2024
+                        </span>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content-->
+    <article class="mb-4">
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <div class="a1">
+                        <div class="a2">
+                            <label for="promptInput"> 輸入指令 </label>
+                            <textarea id="promptInput" name="promptInput" rows="5" cols="40"></textarea>
+                        </div>
+                        <div class="a2">
+                            <label for="newsInput"> 輸入新聞 </label>
+                            <textarea id="newsInput" name="newsInput" rows="5" cols="40"></textarea>
+                        </div>
+                        <div class="a2">
+                            <div class="a3">
+                                <button onclick="predict_stock()" class="a4">預測股市</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="loadingMessage" style="display:none;">正在預測股市中，請稍後...</div>
+                </div>
+            </div>
+        </div>
+    </article>
+    <!-- Footer-->
+    <footer class="border-top">
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <ul class="list-inline text-center">
+                        <li class="list-inline-item">
+                            <a href="#!">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#!">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#!">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fas fa-circle fa-stack-2x"></i>
+                                    <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="small text-center text-muted fst-italic">Copyright &copy; Gen-AI Stock Master 2024</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        function predict_stock() {
+            const promptInput = document.getElementById('promptInput').value;
+            const newsInput = document.getElementById('newsInput').value;
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            if (!promptInput) {
+                alert('請輸入指令');
+                return;
+            }
+
+            // 顯示正在預測中的訊息
+            loadingMessage.style.display = 'block';
+
+            $.ajax({
+                url: "predict_stock",
+                type: "GET",
+                data: { prompt: promptInput, news: newsInput },
+                success: function (result) {
+                    // 隱藏正在預測中的訊息
+                    loadingMessage.style.display = 'none';
+                    const responseContent = result.content;
+
+                    if (responseContent.includes('yes')) {
+                        alert('股市預測為:漲\n');
+                    } else if (responseContent.includes('no')) {
+                        alert('股市預測為:跌\n');
+                    } else if (responseContent.includes('unknown')) {
+                        alert('股市預測為:不確定\n');
+                    } else {
+                        alert(responseContent);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // 隱藏正在預測中的訊息
+                    loadingMessage.style.display = 'none';
+                    alert('預測股市時發生錯誤: ' + error);
+                }
+            });
+        }
+    </script>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="../static/js/scripts.js"></script>
+</body>
+
+</html>

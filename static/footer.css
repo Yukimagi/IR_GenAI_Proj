@@ -1,0 +1,16 @@
+footer{
+	font-weight: 200;
+    line-height: 1em;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding-bottom: 20px;
+    border: 0%;
+}
+
+.copyright{
+    border-top: solid 10px rgb(230, 230, 230);
+    padding-top: 10px;
+    text-align: center;
+    font-size: 15px;
+}
