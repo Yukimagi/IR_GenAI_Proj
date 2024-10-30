@@ -22,4 +22,4 @@ To set up the project, follow these steps:
 - **contact.html**: Helps you contact our team.
 
 ## Questions?
-If you have any questions, please contact one of the contributors. The main designers of the website are Yukimagi and Ziwei.
+If you have any questions, please contact one of the contributors.
