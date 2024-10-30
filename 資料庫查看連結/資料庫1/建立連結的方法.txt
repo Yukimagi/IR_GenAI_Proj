@@ -1,0 +1,45 @@
+如果你只有 health 這個資料表，而想要創建一個視圖以便於共享，以下是步驟：
+
+創建視圖的步驟
+進入 Supabase 控制台：
+
+登入你的 Supabase 帳號，然後選擇相應的專案。
+打開 SQL Editor：
+
+在左側菜單中找到並點擊 SQL Editor。
+創建視圖：
+
+在 SQL Editor 中執行以下 SQL 查詢，以創建一個基於 health 資料表的視圖：
+sql
+複製程式碼
+CREATE VIEW public.health_view AS
+SELECT * FROM public.health;
+這會創建一個名為 health_view 的視圖，該視圖將顯示 health 資料表中的所有數據。
+
+設置訪問權限：
+
+確保將對新創建的視圖授予匿名用戶的選擇權限：
+sql
+複製程式碼
+GRANT SELECT ON public.health_view TO anon;
+確認視圖：
+
+在 SQL Editor 中執行以下查詢來確認視圖是否正確創建並能返回數據：
+sql
+複製程式碼
+SELECT * FROM public.health_view;
+共享視圖的 API 連結
+創建並設置權限後，你可以通過 API 訪問這個視圖，格式如下：
+
+bash
+複製程式碼
+https://<your-project-ref>.supabase.co/rest/v1/health_view?apikey=<你的 anon API 金鑰>
+例如
+如果你的專案參考是 pwwpdkqppibpltojdsgu，則完整的 API 請求鏈接將會是：
+
+bash
+複製程式碼
+https://pwwpdkqppibpltojdsgu.supabase.co/rest/v1/health_view?apikey=<你的 anon API 金鑰>
+將 <你的 anon API 金鑰> 替換為實際的金鑰，然後將此鏈接發送給老師以供查看。
+
+如果你在任何步驟中遇到問題，請隨時告訴我！

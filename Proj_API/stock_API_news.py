@@ -190,29 +190,29 @@ def main():
 
         for news in news_list:
             title = news.get("title", "No Title").replace('\xa0', ' ')
-            content = news.get("content", "No Content").replace('\xa0', ' ')
+            description = news.get("description", "No description").replace('\xa0', ' ')
             news_date = news.get("publishedAt", "No Date").replace('\xa0', ' ')  # 更新日期欄位
             news_url = news.get("url", "No URL").replace('\xa0', ' ')  # 更新 URL 欄位
             source_id = news.get("source", {}).get("name", "Unknown").replace('\xa0', ' ')  # 提取 source id
             
             # 打印新聞細節
             print(f"Title: {title}")
-            print(f"Content: {content}")
+            print(f"description: {description}")
             print(f"Date: {news_date}")
             print(f"Source ID: {source_id}")
             print(f"URL: {news_url}")
             print("-" * 50)
 
             # 使用 Gemini AI 或關鍵字進行判斷
-            #response = gemini_response(content, title, stock_name)
+            #response = gemini_response(description, title, stock_name)
                 
             #if (response == "非股市新聞"):
             if stock_name not in news and stock_name not in title:
-                print(f'非股市新聞:內文({content})標題:({title})')
+                print(f'非股市新聞:內文({description})標題:({title})')
                 continue
 
             # 插入新聞，如果不存在相同的記錄
-            insert_news_if_not_exists(stock_id, title, news_date, content, source_id, news_url)
+            insert_news_if_not_exists(stock_id, title, news_date, description, source_id, news_url)
 
 
 if __name__ == "__main__":
