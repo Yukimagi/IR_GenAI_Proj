@@ -191,7 +191,11 @@ def main():
 
         for news in news_list:
             title = news.get("title", "No Title").replace('\xa0', ' ')
-            description = news.get("description", "No description").replace('\xa0', ' ')
+            description = news.get("description", "No description")
+            if description is None:
+                description = "No description"
+            else:
+                description = description.replace('\xa0', ' ')
             news_date = news.get("publishedAt", "No Date").replace('\xa0', ' ')  # 更新日期欄位
             news_url = news.get("url", "No URL").replace('\xa0', ' ')  # 更新 URL 欄位
             source_id = news.get("source", {}).get("name", "Unknown").replace('\xa0', ' ')  # 提取 source id
