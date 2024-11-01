@@ -1,5 +1,5 @@
 # utils.py
-from supabase import create_client, Client
+from supabase import create_client
 from dotenv import load_dotenv
 import os
 import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ star_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
     # 從 `{topic}_news` 和 `{topic}_news_API` 兩個資料表獲取 ID
     news_ids = set()
-    for supabase in [supabase1, supabase2]: 
+    for db_index, supabase in enumerate([supabase1, supabase2], start=1): 
         for table_suffix in ["news", "news_API"]:
             table_name = f"{topic}_{table_suffix}"
             offset = 0
@@ -39,7 +39,6 @@ def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
                     .execute()
                 )
 
-                print("response: ",response.data)
                 # 確認有獲取到數據
                 if response.data is None:
                     print(f"Error fetching data from table: {table_name}")
@@ -49,8 +48,8 @@ def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
                 if not data:
                     break
 
-                # 使用集合避免重複 ID
-                news_ids.update(item["id"] for item in data)
+                # 使用 tuple (db_index, id) 避免重複 ID，並標記來源資料庫
+                news_ids.update((db_index, item["id"]) for item in data)
                 offset += batch_size
     return list(news_ids)
 
@@ -58,19 +57,28 @@ def fetch_sentiment_data(news_ids, topic, batch_size=5000):
     # 確保使用正確的情緒分析表名稱
     sentiment_table = f"{topic}_news_sentiment"
     all_sentiments = []
-    for supabase in [supabase1, supabase2]: 
-        for i in range(0, len(news_ids), batch_size):
-            batch_ids = news_ids[i:i + batch_size]
+    fetched_ids = set()  # 記錄已抓取的 (db_index, news_id)，避免重複
+
+    for db_index, supabase in enumerate([supabase1, supabase2], start=1): 
+        batch_ids = [news_id for db_id, news_id in news_ids if db_id == db_index]
+        
+        for i in range(0, len(batch_ids), batch_size):
+            batch = batch_ids[i:i + batch_size]
             response = (
                 supabase.from_(sentiment_table)
-                .select("*")
-                .in_("news_id", batch_ids)
+                .select("news_id", "emotion", "star")
+                .in_("news_id", batch)
                 .execute()
             )
             
             # 確認回應資料是否存在
             if response.data:
-                all_sentiments.extend(response.data)
+                for entry in response.data:
+                    id_with_db = (db_index, entry["news_id"])
+                    if id_with_db not in fetched_ids:
+                        entry["db_index"] = db_index  # 新增來源資料庫的標記
+                        all_sentiments.append(entry)
+                        fetched_ids.add(id_with_db)  # 記錄已處理的 (db_index, news_id)
     return all_sentiments
 
 def analyze_data(topic, start_date, end_date):
@@ -82,10 +90,17 @@ def analyze_data(topic, start_date, end_date):
     news_ids = fetch_news_ids(topic, start_date, end_date)
     sentiment_data = fetch_sentiment_data(news_ids, topic)
     
-    # 分析資料並累積計數
+    # 分析資料並累積計數，同時列印每個 ID 的情緒和星級
     for entry in sentiment_data:
+        db_index = entry["db_index"]
+        news_id = entry["news_id"]
         star = entry["star"]
         emotion = entry["emotion"]
+        
+        # 列印每筆資料的來源資料庫、ID、star 和 emotion
+        print(f"Database: {db_index}, News ID: {news_id}, Star: {star}, Emotion: {emotion}")
+        
+        # 累計 star 和 emotion 計數
         star_counts[star] += 1
         if emotion == 1:
             emotion_counts["positive"] += 1
