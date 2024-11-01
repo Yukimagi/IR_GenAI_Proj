@@ -96,7 +96,7 @@ def analyze():
     # Validate topic selection and date format
     if topic not in ["health", "sport", "stock"]:
         return jsonify({"error": "Invalid topic selected."}), 400
-    if source not in ["ltn", "tvbs", "China Times", "Yahoo Entertainment"]:
+    if source not in ["ltn", "tvbs", "China Times", "Yahoo Entertainment","all"]:
         return jsonify({"error": "Invalid topic selected."}), 400
     
     try:

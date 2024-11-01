@@ -30,15 +30,19 @@ def fetch_news_ids(topic, start_date, end_date, source, batch_size=5000):
             table_name = f"{topic}_{table_suffix}"
             offset = 0
             while True:
-                response = (
+                query = (
                     supabase.from_(table_name)
                     .select("id")
-                    .eq("source", source)  # 篩選特定的 source
                     .gte("date", start_date)
                     .lte("date", end_date)
                     .range(offset, offset + batch_size - 1)
-                    .execute()
                 )
+                
+                # If source is not "all", filter by the specific source
+                if source != "all":
+                    query = query.eq("source", source)
+
+                response = query.execute()
 
                 if response.data is None:
                     print(f"Error fetching data from table: {table_name}")
@@ -52,6 +56,7 @@ def fetch_news_ids(topic, start_date, end_date, source, batch_size=5000):
                 news_ids.update((db_index, item["id"]) for item in data)
                 offset += batch_size
     return list(news_ids)
+
 
 
 def fetch_sentiment_data(news_ids, topic, batch_size=5000):
@@ -86,6 +91,7 @@ def analyze_data(topic, start_date, end_date, source):
     global emotion_counts, star_counts
     emotion_counts = {'positive': 0, 'neutral': 0, 'negative': 0}
     star_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    
     
     # 抓取符合條件的新聞 ID 和對應情緒數據
     news_ids = fetch_news_ids(topic, start_date, end_date, source)
