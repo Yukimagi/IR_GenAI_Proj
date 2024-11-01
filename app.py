@@ -88,12 +88,15 @@ def analyze():
     topic = request.form.get('topic')
     startDate = request.form.get('startDate')
     endDate = request.form.get('endDate')
+    source = request.form.get('source')  # 接收新的 source 值
 
     # Debugging statements
-    print(f" Topic: {topic}, Start Date: {startDate}, End Date: {endDate}")
+    print(f" Topic: {topic}, Start Date: {startDate}, End Date: {endDate}, Source: {source}")
 
     # Validate topic selection and date format
     if topic not in ["health", "sport", "stock"]:
+        return jsonify({"error": "Invalid topic selected."}), 400
+    if source not in ["ltn", "tvbs", "China Times", "Yahoo Entertainment"]:
         return jsonify({"error": "Invalid topic selected."}), 400
     
     try:
@@ -103,9 +106,10 @@ def analyze():
         return jsonify({"error": f"Invalid date format. Use YYYY-MM-DD. Error: {str(ve)}"}), 400
 
     # Pass all required parameters to analyze_data
-    analyze_data(topic, startDate, endDate)
+    analyze_data(topic, startDate, endDate, source)
     chart_image = plot_statistics()
     return jsonify({"chart": chart_image})
+
 
 
     

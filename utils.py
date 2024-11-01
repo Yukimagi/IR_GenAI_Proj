@@ -22,8 +22,8 @@ supabase2 = create_client(url2, key2)
 emotion_counts = {'positive': 0, 'neutral': 0, 'negative': 0}
 star_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
-def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
-    # 從 `{topic}_news` 和 `{topic}_news_API` 兩個資料表獲取 ID
+def fetch_news_ids(topic, start_date, end_date, source, batch_size=5000):
+    # 從 `{topic}_news` 和 `{topic}_news_API` 兩個資料表中篩選符合條件的數據
     news_ids = set()
     for db_index, supabase in enumerate([supabase1, supabase2], start=1): 
         for table_suffix in ["news", "news_API"]:
@@ -33,13 +33,13 @@ def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
                 response = (
                     supabase.from_(table_name)
                     .select("id")
+                    .eq("source", source)  # 篩選特定的 source
                     .gte("date", start_date)
                     .lte("date", end_date)
                     .range(offset, offset + batch_size - 1)
                     .execute()
                 )
 
-                # 確認有獲取到數據
                 if response.data is None:
                     print(f"Error fetching data from table: {table_name}")
                     break
@@ -48,10 +48,11 @@ def fetch_news_ids(topic, start_date, end_date, batch_size=5000):
                 if not data:
                     break
 
-                # 使用 tuple (db_index, id) 避免重複 ID，並標記來源資料庫
+                # 將符合條件的新聞 ID 添加到 news_ids 集合中
                 news_ids.update((db_index, item["id"]) for item in data)
                 offset += batch_size
     return list(news_ids)
+
 
 def fetch_sentiment_data(news_ids, topic, batch_size=5000):
     # 確保使用正確的情緒分析表名稱
@@ -81,13 +82,13 @@ def fetch_sentiment_data(news_ids, topic, batch_size=5000):
                         fetched_ids.add(id_with_db)  # 記錄已處理的 (db_index, news_id)
     return all_sentiments
 
-def analyze_data(topic, start_date, end_date):
+def analyze_data(topic, start_date, end_date, source):
     global emotion_counts, star_counts
     emotion_counts = {'positive': 0, 'neutral': 0, 'negative': 0}
     star_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     
     # 抓取符合條件的新聞 ID 和對應情緒數據
-    news_ids = fetch_news_ids(topic, start_date, end_date)
+    news_ids = fetch_news_ids(topic, start_date, end_date, source)
     sentiment_data = fetch_sentiment_data(news_ids, topic)
     
     # 分析資料並累積計數，同時列印每個 ID 的情緒和星級
@@ -108,6 +109,7 @@ def analyze_data(topic, start_date, end_date):
             emotion_counts["neutral"] += 1
         elif emotion == -1:
             emotion_counts["negative"] += 1
+
 
 def plot_statistics():
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
