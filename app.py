@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template
 import subprocess
 import os
 import logging
+from utils import analyze_data, plot_statistics
+from datetime import datetime
 
 current_file_path = os.path.abspath(__file__)
 
@@ -32,6 +34,10 @@ def index():
 @app.route("/crawl.html")
 def crawl():
     return render_template("crawl.html")
+
+@app.route("/emotion.html")
+def emotion():
+    return render_template("emotion.html")
 
 @app.route("/")
 def root():
@@ -77,7 +83,31 @@ def fetch_news():
     except Exception as e:
         return jsonify({"message": f"Server error: {str(e)}"}), 500
 
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    topic = request.form.get('topic')
+    startDate = request.form.get('startDate')
+    endDate = request.form.get('endDate')
+
+    # Debugging statements
+    print(f" Topic: {topic}, Start Date: {startDate}, End Date: {endDate}")
+
+    # Validate topic selection and date format
+    if topic not in ["health", "sport", "stock"]:
+        return jsonify({"error": "Invalid topic selected."}), 400
     
+    try:
+        datetime.strptime(startDate, "%Y-%m-%d")
+        datetime.strptime(endDate, "%Y-%m-%d")
+    except ValueError as ve:
+        return jsonify({"error": f"Invalid date format. Use YYYY-MM-DD. Error: {str(ve)}"}), 400
+
+    # Pass all required parameters to analyze_data
+    analyze_data(topic, startDate, endDate)
+    chart_image = plot_statistics()
+    return jsonify({"chart": chart_image})
+
+
     
 if __name__ == '__main__':
     #定義app在8080埠運行
