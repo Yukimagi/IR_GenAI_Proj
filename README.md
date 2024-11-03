@@ -29,5 +29,10 @@ To set up the project, follow these steps:
 - crawl請參考"news(原始爬全部的爬蟲)"
 - 產生sentiment score請參考"sentiment"
 
+## Other File
+- Word:Report(TermProject I_word)
+- PDF:Report(TermProject I_pdf)
+- PDF:TermProject I_ppt
+
 ## Questions?
 If you have any questions, please contact one of the contributors.
