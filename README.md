@@ -21,8 +21,8 @@ To set up the project, follow these steps:
 
 ## About Database
 - 請參考word中的資料庫介紹
-- 請在此資料夾查看"CSV資料庫"以csv存個個資料表，並分別存DB1和DB2的資料庫內容。
-- 請在此資料夾查看"sql資料庫"以sql存個個資料表，並分別存DB1和DB2的資料庫內容。
+- 請在此資料夾查看"CSV資料庫"以csv存各個資料表，並分別存DB1和DB2的資料庫內容。
+- 請在此資料夾查看"sql資料庫"以sql存各個資料表，並分別存DB1和DB2的資料庫內容。
 
 ## About Original Program(about sentiment and crawler)
 - crawl請參考"news(原始爬全部的爬蟲)"
