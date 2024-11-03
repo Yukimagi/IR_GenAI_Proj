@@ -120,6 +120,8 @@ def analyze():
             ),
             400,
         )
+    global global_plot_data
+    global_plot_data = {}  # Reset the global data structure
 
     if mode == "database":
         # 從資料庫取得已儲存的分析數據
