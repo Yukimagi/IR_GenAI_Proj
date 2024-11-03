@@ -2,7 +2,12 @@ from flask import Flask, request, jsonify, render_template
 import subprocess
 import os
 import logging
-from utils import analyze_data, plot_statistics, plot_sentiment_timeseries
+from utils import (
+    analyze_data,
+    analyze_realtime,
+    plot_statistics,
+    plot_sentiment_timeseries,
+)
 from datetime import datetime
 
 current_file_path = os.path.abspath(__file__)
@@ -87,14 +92,15 @@ def fetch_news():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
+    mode = request.form.get("mode")
     topic = request.form.get("topic")
     startDate = request.form.get("startDate")
     endDate = request.form.get("endDate")
-    source = request.form.get("source")  # 接收新的 source 值
+    source = request.form.get("source")
 
     # Debugging statements
     print(
-        f" Topic: {topic}, Start Date: {startDate}, End Date: {endDate}, Source: {source}"
+        f" Mode:{mode},Topic: {topic}, Start Date: {startDate}, End Date: {endDate}, Source: {source}"
     )
 
     # Validate topic selection and date format
@@ -103,6 +109,7 @@ def analyze():
     if source not in ["ltn", "tvbs", "China Times", "Yahoo Entertainment", "all"]:
         return jsonify({"error": "Invalid topic selected."}), 400
 
+    # 檢查日期格式
     try:
         datetime.strptime(startDate, "%Y-%m-%d")
         datetime.strptime(endDate, "%Y-%m-%d")
@@ -114,15 +121,18 @@ def analyze():
             400,
         )
 
-    # Pass all required parameters to analyze_data
-    analyze_data(topic, startDate, endDate, source)
+    if mode == "database":
+        # 從資料庫取得已儲存的分析數據
+        analyze_data(topic, startDate, endDate, source)
+    else:  # "realtime" 即時分析模式
+        analyze_realtime(topic, startDate, endDate, source)
+
     # 繪製情緒分布和評分分布圖表
     chart_image = plot_statistics()
 
     # 繪製情緒隨時間變化的時間序列圖
     time_series_image = plot_sentiment_timeseries(topic, startDate, endDate, source)
 
-    # 返回兩張圖的 Base64 編碼
     return jsonify({"chart": chart_image, "time_series": time_series_image})
 
 

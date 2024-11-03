@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 import pandas as pd
+import importlib
+from datetime import datetime
+from sentiment.topic_sentiment import analyze_and_store_sentiments  # Adjusted import
 
 # Load environment variables
 load_dotenv()
@@ -89,6 +92,7 @@ def fetch_sentiment_data(news_ids, topic, batch_size=5000):
     return all_sentiments
 
 
+# for時間序列圖
 def fetch_date_data(news_ids, topic, batch_size=5000):
     all_dates = []
     fetched_ids = set()  # Track fetched (db_index, news_id) to avoid duplicates
@@ -123,6 +127,7 @@ def fetch_date_data(news_ids, topic, batch_size=5000):
     return all_dates
 
 
+# from database
 def analyze_data(topic, start_date, end_date, source):
     global emotion_counts, star_counts
     emotion_counts = {"positive": 0, "neutral": 0, "negative": 0}
@@ -152,6 +157,52 @@ def analyze_data(topic, start_date, end_date, source):
             emotion_counts["neutral"] += 1
         elif emotion == -1:
             emotion_counts["negative"] += 1
+    print("analyze_data計算完成!")
+
+
+# from {topic}_sentiment.py
+def analyze_realtime(topic, start_date, end_date, source):
+    """
+    根據選擇的主題，調用 sentiment 資料夾下對應的情緒分析模組
+    topic: 主題（health、sport 或 stock）
+    start_date, end_date: 分析的開始與結束日期
+    source: 資料來源
+    """
+
+    global emotion_counts, star_counts
+    emotion_counts = {"positive": 0, "neutral": 0, "negative": 0}
+    star_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+
+    # 直接調用 topic_sentiment.py 的 analyze_and_store_sentiments 函數
+    print("即時情緒分析中!")
+    result = analyze_and_store_sentiments(topic, start_date, end_date, source)
+    print("即時情緒分析完成!")
+
+    # 抓取符合條件的新聞 ID 和對應情緒數據
+    news_ids = fetch_news_ids(topic, start_date, end_date, source)
+    sentiment_data = fetch_sentiment_data(news_ids, topic)
+
+    # 分析資料並累積計數，同時列印每個 ID 的情緒和星級
+    for entry in sentiment_data:
+        db_index = entry["db_index"]
+        news_id = entry["news_id"]
+        star = entry["star"]
+        emotion = entry["emotion"]
+
+        # 列印每筆資料的來源資料庫、ID、star 和 emotion
+        print(
+            f"Database: {db_index}, News ID: {news_id}, Star: {star}, Emotion: {emotion}"
+        )
+
+        # 累計 star 和 emotion 計數
+        star_counts[star] += 1
+        if emotion == 1:
+            emotion_counts["positive"] += 1
+        elif emotion == 0:
+            emotion_counts["neutral"] += 1
+        elif emotion == -1:
+            emotion_counts["negative"] += 1
+    print("analyze_realtime計算完成!")
 
 
 def plot_statistics():

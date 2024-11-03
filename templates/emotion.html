@@ -128,6 +128,15 @@
             max-width: 100%;
             /* Ensures responsiveness */
         }
+
+        .button-container {
+            display: flex;
+            /* Use flexbox for alignment */
+            justify-content: space-around;
+            /* Space buttons evenly */
+            margin: 20px;
+            /* Add some margin for spacing */
+        }
     </style>
 </head>
 
@@ -206,13 +215,43 @@
                             </div>
                         </div>
 
-                        <div class="a1">
-                            <div class="a2">
-                                <div class="a3">
-                                    <button type="submit" class="a4">開始分析</button>
+                        <!-- 顯示分析按鈕 -->
+                        <div class="button-container">
+                            <!-- 顯示分析按鈕 -->
+                            <div class="a1">
+                                <div class="a2">
+                                    <div class="a3">
+                                        <button type="button" id="show-analysis-btn" class="a4">顯示分析</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 即時分析按鈕 -->
+                            <div class="a1">
+                                <div class="a2">
+                                    <div class="a3">
+                                        <button type="button" id="realtime-analysis-btn" class="a4">情緒分析</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!--
+                        <div class="a1">
+                            <div class="a2">
+                                <div class="a3">
+                                    <button type="submit" class="a4">顯示分析</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="a1">
+                            <div class="a2">
+                                <div class="a3">
+                                    <button type="submit" class="a4">即時分析</button>
+                                </div>
+                            </div>
+                        </div>-->
+
                     </form>
                     <div id="loadingMessage" style="display:none;">正在訓練中，請稍後...</div>
                     <br><br>
@@ -229,7 +268,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <ul class="list-inline text-center">
-                           
+
                         <li class="list-inline-item">
                             <a href="https://github.com/Yukimagi/IR_GenAI_Proj">
                                 <span class="fa-stack fa-lg">
@@ -239,16 +278,17 @@
                             </a>
                         </li>
                     </ul>
-                    <div class="small text-center text-muted fst-italic">Copyright &copy; Sentiment News Team4 2024</div>
+                    <div class="small text-center text-muted fst-italic">Copyright &copy; Sentiment News Team4 2024
+                    </div>
                 </div>
             </div>
         </div>
     </footer>
     <script>
-        document.getElementById("analyze-form").addEventListener("submit", async (event) => {
+        /*document.getElementById("analyze-form").addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            // 显示加载消息
+            //  顯示加載消息
             document.getElementById("loadingMessage").style.display = "block";
             const formData = new FormData(event.target);
             const response = await fetch("/analyze", {
@@ -276,7 +316,51 @@
                 alert(result.error || "An error occurred while generating the time series chart.");
             }
 
+        });*/
+        document.getElementById("show-analysis-btn").addEventListener("click", (event) => {
+            handleFormSubmit(event, "database");
         });
+
+        document.getElementById("realtime-analysis-btn").addEventListener("click", (event) => {
+            handleFormSubmit(event, "realtime");
+        });
+
+        async function handleFormSubmit(event, mode) {
+            event.preventDefault();
+
+            // 顯示加載消息
+            document.getElementById("loadingMessage").style.display = "block";
+
+            const formData = new FormData(document.getElementById("analyze-form"));
+            formData.append("mode", mode);  // 加入模式參數，用於辨別分析類型
+
+            const response = await fetch("/analyze", {
+                method: "POST",
+                body: formData
+            });
+
+            document.getElementById("loadingMessage").style.display = "none"; // 隱藏加載消息
+
+            const result = await response.json();
+
+            // 顯示第一張圖（情緒分布和評分分布的柱狀圖）
+            if (result.chart) {
+                const chart = document.getElementById("chart");
+                chart.src = `data:image/png;base64,${result.chart}`;
+                chart.style.display = "block";
+            } else {
+                alert(result.error || "An error occurred while generating the chart.");
+            }
+
+            // 顯示第二張圖（情緒隨時間變化的時間序列圖）
+            if (result.time_series) {
+                const timeSeries = document.getElementById("time_series");
+                timeSeries.src = `data:image/png;base64,${result.time_series}`;
+                timeSeries.style.display = "block";
+            } else if (!result.chart) { // 如果只缺 time_series 圖，不彈出警告
+                alert(result.error || "An error occurred while generating the time series chart.");
+            }
+        }
 
     </script>
     <!-- Bootstrap core JS-->
