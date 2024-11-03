@@ -126,14 +126,20 @@ def analyze():
     if mode == "database":
         # 從資料庫取得已儲存的分析數據
         analyze_data(topic, startDate, endDate, source)
+
+        # 繪製情緒分布和評分分布圖表
+        chart_image = plot_statistics()
+
+        # 繪製情緒隨時間變化的時間序列圖
+        time_series_image = plot_sentiment_timeseries(topic, startDate, endDate, source)
     else:  # "realtime" 即時分析模式
         analyze_realtime(topic, startDate, endDate, source)
 
-    # 繪製情緒分布和評分分布圖表
-    chart_image = plot_statistics()
+        # 繪製情緒分布和評分分布圖表
+        chart_image = plot_statistics()
 
-    # 繪製情緒隨時間變化的時間序列圖
-    time_series_image = plot_sentiment_timeseries(topic, startDate, endDate, source)
+        # 繪製情緒隨時間變化的時間序列圖
+        time_series_image = plot_sentiment_timeseries(topic, startDate, endDate, source)
 
     return jsonify({"chart": chart_image, "time_series": time_series_image})
 

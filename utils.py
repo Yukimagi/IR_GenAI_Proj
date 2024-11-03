@@ -250,9 +250,6 @@ def plot_sentiment_timeseries(topic, start_date, end_date, source):
     news_dates_df = pd.DataFrame(news_dates)
     sentiment_data_df = pd.DataFrame(sentiment_data)
 
-    print("news_dates_df columns:", news_dates_df.columns)
-    print("sentiment_data_df columns:", sentiment_data_df.columns)
-
     # 合併時指定不同的欄位名稱
     combined_data = pd.merge(
         news_dates_df, sentiment_data_df, left_on="id", right_on="news_id", how="inner"
@@ -265,6 +262,8 @@ def plot_sentiment_timeseries(topic, start_date, end_date, source):
 
     # Convert the date column to datetime format and sort by date
     combined_data["date"] = pd.to_datetime(combined_data["date"])
+    # 檢查日期範圍
+    print(combined_data["date"].min(), combined_data["date"].max())
     combined_data = combined_data.sort_values("date")
 
     # Calculate the daily average sentiment score
@@ -276,7 +275,11 @@ def plot_sentiment_timeseries(topic, start_date, end_date, source):
     ax.set_title(f"Sentiment Trend from {start_date} to {end_date}")
     ax.set_xlabel("Date")
     ax.set_ylabel("Average Sentiment")
-    ax.axhline(0, color="gray", linestyle="--", linewidth=0.5)  # Neutral sentiment line
+    ax.axhline(0, color="gray", linestyle="--", linewidth=0.5)
+
+    # 設定橫軸範圍
+    ax.set_xlim(pd.to_datetime(start_date), pd.to_datetime(end_date))
+
     plt.xticks(rotation=45)
     plt.tight_layout()
 
