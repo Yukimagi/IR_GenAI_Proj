@@ -12,24 +12,9 @@ print(f"Current file path: {current_file_path}")
 app = Flask(__name__)
 
 
-@app.route("/model.html")
-def model():
-    return render_template("model.html")
-
-
-@app.route("/predict.html")
-def predict():
-    return render_template("predict.html")
-
-
 @app.route("/about.html")
 def about():
     return render_template("about.html")
-
-
-@app.route("/contact.html")
-def contact():
-    return render_template("contact.html")
 
 
 @app.route("/index.html")

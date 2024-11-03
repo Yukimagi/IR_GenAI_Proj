@@ -17,9 +17,16 @@ To set up the project, follow these steps:
 - **index.html**: Serves as the homepage.
 - **about.html**: Provides an introduction to this project and its contributors.
 - **crawl.html**: Helps you fetch the necessary data. (Please retrieve data daily.)
-- **model.html**: Allows you to train and test models.
-- **predict.html**: Allows you to predict.
-- **contact.html**: Helps you contact our team.
+- **emotion.html**: Let you get sentiment visualization(dynamic).
+
+## About Database
+- 請參考word中的資料庫介紹
+- 請在此資料夾查看"CSV資料庫"以csv存個個資料表，並分別存DB1和DB2的資料庫內容。
+- 請在此資料夾查看"sql資料庫"以sql存個個資料表，並分別存DB1和DB2的資料庫內容。
+
+## About Original Program(about sentiment and crawler)
+- crawl請參考"news(原始爬全部的爬蟲)"
+- 產生sentiment score請參考"sentiment"
 
 ## Questions?
 If you have any questions, please contact one of the contributors.
