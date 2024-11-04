@@ -190,6 +190,7 @@ def fetch_news_data():
     # Define table names based on topic
     tables = ["health_news", "health_news_API", "stock_news", "stock_news_API", "sports_news", "sports_news_API"]
     results = []
+    seen_entries = set()
 
     for table in tables:
         if topic and topic != "all" and not table.startswith(topic):
@@ -203,7 +204,17 @@ def fetch_news_data():
             if date:
                 query = query.eq("date", date)
 
-            results.extend(query.execute().data or [])
+            data = query.execute().data or []
+            
+            for item in data:
+                # Create a tuple to identify unique records
+                unique_key = (item['date'], item['title'], item['source'])
+                
+                # Add item to results if it's not already in seen_entries
+                if unique_key not in seen_entries:
+                    seen_entries.add(unique_key)
+                    results.append(item)
+
 
     if results:
         return jsonify(results=results, message="success")
