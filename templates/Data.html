@@ -87,14 +87,14 @@
             border-color: #272727;
             outline: none;
         }
-        
+
         .a3 {
             width: 100%;
             padding: 10px;
             font-size: 16px;
             box-sizing: border-box;
         }
-        
+
         .a4 {
             padding: 10px 20px;
             font-size: 16px;
@@ -122,7 +122,7 @@
             cursor: pointer;
             text-align: center;
         }
-        
+
 
         .divider {
             width: 1px;
@@ -226,6 +226,15 @@
                         <label for="newsDate">日期</label>
                         <input type="date" id="news_date" class="a3">
                     </div>
+                    <div class="a2">
+                        <label for="newsEmotion">情緒</label>
+                        <select id="news_emotion" class="a3">
+                            <option value="all">All</option>
+                            <option value="positive">positive</option>
+                            <option value="neutral">neutral</option>
+                            <option value="negative">negative</option>
+                        </select>
+                    </div>
                     <div class="a3">
                         <button onclick="submit_news()" class="a4">開始</button>
                     </div>
@@ -239,6 +248,8 @@
                                 <th style="padding: 8px; border-bottom: 2px solid #000;">Date</th>
                                 <th style="padding: 8px; border-bottom: 2px solid #000;">Content</th>
                                 <th style="padding: 8px; border-bottom: 2px solid #000;">Source</th>
+
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">Emotion</th>
                                 <th style="padding: 8px; border-bottom: 2px solid #000;">URL</th>
                             </tr>
                         </thead>
@@ -255,7 +266,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <ul class="list-inline text-center">
-                        
+
                         <li class="list-inline-item">
                             <a href="https://github.com/Yukimagi/IR_GenAI_Proj">
                                 <span class="fa-stack fa-lg">
@@ -265,7 +276,8 @@
                             </a>
                         </li>
                     </ul>
-                    <div class="small text-center text-muted fst-italic">Copyright &copy; Sentiment News Team4 2024</div>
+                    <div class="small text-center text-muted fst-italic">Copyright &copy; Sentiment News Team4 2024
+                    </div>
                 </div>
             </div>
         </div>
@@ -280,25 +292,27 @@
             const newsCompany = document.getElementById("news_company").value;
             const newsTopic = document.getElementById("news_topic").value;
             const newsDate = document.getElementById("news_date").value;
-        
+            const newsEmotion = document.getElementById("news_emotion").value;
+
             // Validate company and topic values
             //const validCompanies = ["all", "Blog.jp", "China Times"];
             //const validTopics = ["all", "stock", "health", "sport"];
-        
+
             //if (!validCompanies.includes(newsCompany) || !validTopics.includes(newsTopic)) {
-                //alert("Invalid company or topic selected.");
-                //return;
+            //alert("Invalid company or topic selected.");
+            //return;
             //}
-        
+
             document.getElementById("loading_message").style.display = "block";
             document.getElementById("results_table").style.display = "none";
-        
+
             const payload = {
                 company: newsCompany === "all" ? null : newsCompany,
                 topic: newsTopic === "all" ? null : newsTopic,
-                date: newsDate || null
+                date: newsDate || null,
+                emotion: newsEmotion === "all" ? null : newsEmotion
             };
-        
+
             fetch("/fetch_news_data", {
                 method: "POST",
                 headers: {
@@ -306,34 +320,35 @@
                 },
                 body: JSON.stringify(payload)
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("loading_message").style.display = "none";
-                const resultsBody = document.getElementById("results_body");
-                resultsBody.innerHTML = ""; // Clear previous results
-        
-                if (data.message === "success") {
-                    data.results.forEach(item => {
-                        const row = `<tr style="border-bottom:2px solid #000;"">
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("loading_message").style.display = "none";
+                    const resultsBody = document.getElementById("results_body");
+                    resultsBody.innerHTML = ""; // Clear previous results
+
+                    if (data.message === "success") {
+                        data.results.forEach(item => {
+                            const row = `<tr style="border-bottom:2px solid #000;"">
                             <td style="padding: 8px;">${item.title}</td>
                             <td style="padding: 8px;">${item.date}</td>
                             <td style="padding: 8px;">${item.content}</td>
                             <td style="padding: 8px;">${item.source}</td>
+                            <td style="padding: 8px;">${item.emotion}</td>                        
                             <td style="padding: 8px;"><a href="${item.url}" target="_blank">Link</a></td>
                         </tr>`;
-                        resultsBody.innerHTML += row;
-                    });
-                    document.getElementById("results_table").style.display = "block";
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(() => {
-                document.getElementById("loading_message").style.display = "none";
-                alert("發生錯誤，請稍後再試！");
-            });
+                            resultsBody.innerHTML += row;
+                        });
+                        document.getElementById("results_table").style.display = "block";
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(() => {
+                    document.getElementById("loading_message").style.display = "none";
+                    alert("發生錯誤，請稍後再試！");
+                });
         }
-        </script>        
+    </script>
 </body>
 
 </html>
