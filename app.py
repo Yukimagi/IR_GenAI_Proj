@@ -10,9 +10,26 @@ from utils import (
 )
 from datetime import datetime
 
+from supabase import create_client
+from dotenv import load_dotenv
+
+
 current_file_path = os.path.abspath(__file__)
 
 print(f"Current file path: {current_file_path}")
+
+# Load environment variables
+load_dotenv()
+
+# Supabase info for Database 1
+url1 = os.getenv("SUPABASE_URL_1")
+key1 = os.getenv("SUPABASE_KEY_1")
+supabase1 = create_client(url1, key1)
+
+# Supabase info for Database 2
+url2 = os.getenv("SUPABASE_URL_2")
+key2 = os.getenv("SUPABASE_KEY_2")
+supabase2 = create_client(url2, key2)
 
 app = Flask(__name__)
 
@@ -36,6 +53,9 @@ def crawl():
 def emotion():
     return render_template("emotion.html")
 
+@app.route("/Data.html")
+def Data():
+    return render_template("Data.html")
 
 @app.route("/")
 def root():
@@ -143,7 +163,55 @@ def analyze():
 
     return jsonify({"chart": chart_image, "time_series": time_series_image})
 
+@app.route("/fetch_news_data", methods=["POST"])
+def fetch_news_data():
+    data = request.json
+    topic = data.get('topic')
+    source = data.get('company')
+    date = data.get('date')
 
+    # Debugging print statements
+    print("Received company:", source)
+    print("Received topic:", topic)
+    print("Received date:", date)
+    '''
+    # Valid topics and companies
+    valid_topics = ["all", "stock", "health", "sport"]
+    valid_companies = ["all", "Blog.jp", "China Times"]
+
+    # Validate topic and company
+    if topic not in valid_topics:
+        print("Invalid topic:", topic)
+        return jsonify(message="Invalid topic"), 400
+    if source not in valid_companies:
+        print("Invalid company:", source)
+        return jsonify(message="Invalid company"), 400
+    '''
+    # Define table names based on topic
+    tables = ["health_news", "health_news_API", "stock_news", "stock_news_API", "sports_news", "sports_news_API"]
+    results = []
+
+    for table in tables:
+        if topic and topic != "all" and not table.startswith(topic):
+            continue
+
+        for db in [supabase1, supabase2]:
+            query = db.table(table).select("title, date, content, source, url")
+            
+            if source:
+                query = query.eq("source", source)
+            if date:
+                query = query.eq("date", date)
+
+            results.extend(query.execute().data or [])
+
+    if results:
+        return jsonify(results=results, message="success")
+    else:
+        return jsonify(message="No data found.")
+
+
+    
 if __name__ == "__main__":
     # 定義app在8080埠運行
     app.run(host="0.0.0.0", port=8000, debug=True)

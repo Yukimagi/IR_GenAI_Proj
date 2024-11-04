@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Crawl_Sentiment_News</title>
+    <title>Data_Sentiment_News</title>
     <link rel="icon" type="image/x-icon" href="../static/assets/favicon.ico" />
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
@@ -160,8 +160,8 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <div class="post-heading">
-                        <h1>News Crawler</h1>
-                        <h2 class="subheading">每日檢索並獲取必要的數據。</h2>
+                        <h1>News Data Search</h1>
+                        <h2 class="subheading">尋找對應的新聞文章。</h2>
                         <!--<span class="meta">
                             Posted by
                             <a href="post.htnl">Gen-AI Stock Master Team</a>
@@ -181,30 +181,70 @@
                     <div class="a2">
                         <label for="newsCompany">新聞公司</label>
                         <select id="news_company" class="a3">
-                            <option value="chinatimes">中國時報</option>
-                            <option value="liberty">自由時報</option>
-                            <option value="tvbs">TVBS</option>
-                            <option value="api">API</option>
+                            <option value="all">All</option>
+                            <option value="China Times">China Times</option>
+                            <option value="tvbs">tvbs</option>
+                            <option value="ltn">ltn</option>
+                            <option value="Yahoo Entertainment">Yahoo Entertainment</option>
+                            <option value="Blog.jp">Blog.jp</option>
+                            <option value="Cnbeta.com.tw">Cnbeta.com.tw</option>
+                            <option value="Cnblogs.com">Cnblogs.com</option>
+                            <option value="Cool3c.com">Cool3c.com</option>
+                            <option value="Douban.com">Douban.com</option>
+                            <option value="DW (English)">DW (English)</option>
+                            <option value="Gamme.com.tw">Gamme.com.tw</option>
+                            <option value="Huxiu.com">Huxiu.com</option>
+                            <option value="Inmediahk.net">Inmediahk.net</option>
+                            <option value="Inside.com.tw">Inside.com.tw</option>
+                            <option value="Ithome.com">Ithome.com</option>
+                            <option value="Ithome.com.tw">Ithome.com.tw</option>
+                            <option value="Jandan.net">Jandan.net</option>
+                            <option value="Kocpc.com.tw">Kocpc.com.tw</option>
+                            <option value="Livedoor.jp">Livedoor.jp</option>
+                            <option value="Secretchina.com">Secretchina.com</option>
+                            <option value="Smzdm.com">Smzdm.com</option>
+                            <option value="Soft4fun.net">Soft4fun.net</option>
+                            <option value="Storm.mg">Storm.mg</option>
+                            <option value="Techbang.com">Techbang.com</option>
+                            <option value="Technews.tw">Technews.tw</option>
+                            <option value="Thenewslens.com">Thenewslens.com</option>
+                            <option value="Unwire.hk">Unwire.hk</option>
+
+                            <!-- Add other options here -->
                         </select>
                     </div>
                     <div class="a2">
                         <label for="newsTopic">主題</label>
                         <select id="news_topic" class="a3">
-                            <option value="stock">股市</option>
-                            <option value="health">健康</option>
-                            <option value="sports">運動</option>
+                            <option value="all">All</option>
+                            <option value="stock">stock</option>
+                            <option value="health">health</option>
+                            <option value="sport">sport</option>
                         </select>
                     </div>
                     <div class="a2">
-                        <label for="newsTitle">頁數</label>
-                        <input type="number" id="news_pages" class="a3" placeholder="輸入頁數">
+                        <label for="newsDate">日期</label>
+                        <input type="date" id="news_date" class="a3">
                     </div>
                     <div class="a3">
                         <button onclick="submit_news()" class="a4">開始</button>
                     </div>
                 </div>
-                <!-- 爬蟲狀態訊息顯示 -->
-                <div id="loading_message" style="display: none; color: blue;">正在爬蟲請稍後...</div>
+                <div id="loading_message" style="display: none; color: blue;">正在獲取資料，請稍後...</div>
+                <div id="results_table" style="display: none;">
+                    <table border="0" style="border-collapse: collapse; width: 100%;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #ccc;">
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">Title</th>
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">Date</th>
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">Content</th>
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">Source</th>
+                                <th style="padding: 8px; border-bottom: 2px solid #000;">URL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results_body"></tbody>
+                    </table>
+                </div>
                 <!--<div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>-->
             </div>
         </div>
@@ -239,43 +279,61 @@
         function submit_news() {
             const newsCompany = document.getElementById("news_company").value;
             const newsTopic = document.getElementById("news_topic").value;
-            const newsPages = document.getElementById("news_pages").value;
-    
-            if (!newsPages || newsPages <= 0) {
-                alert("請輸入有效的頁數！");
-                return;
-            }
-    
-            // 顯示「爬蟲中」的訊息
+            const newsDate = document.getElementById("news_date").value;
+        
+            // Validate company and topic values
+            //const validCompanies = ["all", "Blog.jp", "China Times"];
+            //const validTopics = ["all", "stock", "health", "sport"];
+        
+            //if (!validCompanies.includes(newsCompany) || !validTopics.includes(newsTopic)) {
+                //alert("Invalid company or topic selected.");
+                //return;
+            //}
+        
             document.getElementById("loading_message").style.display = "block";
-    
-            $.ajax({
-                url: "/fetch_news",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    company: newsCompany,
-                    topic: newsTopic,
-                    pages: parseInt(newsPages)
-                }),
-                success: function (result) {
-                    // 隱藏「爬蟲中」的訊息
-                    document.getElementById("loading_message").style.display = "none";
-    
-                    if (result.message === "success") {
-                        alert("新聞資料更新成功！");
-                    } else {
-                        alert(result.message);
-                    }
+            document.getElementById("results_table").style.display = "none";
+        
+            const payload = {
+                company: newsCompany === "all" ? null : newsCompany,
+                topic: newsTopic === "all" ? null : newsTopic,
+                date: newsDate || null
+            };
+        
+            fetch("/fetch_news_data", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 },
-                error: function () {
-                    // 隱藏「爬蟲中」的訊息並顯示錯誤提示
-                    document.getElementById("loading_message").style.display = "none";
-                    alert("發生錯誤，請稍後再試！");
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loading_message").style.display = "none";
+                const resultsBody = document.getElementById("results_body");
+                resultsBody.innerHTML = ""; // Clear previous results
+        
+                if (data.message === "success") {
+                    data.results.forEach(item => {
+                        const row = `<tr style="border-bottom:2px solid #000;"">
+                            <td style="padding: 8px;">${item.title}</td>
+                            <td style="padding: 8px;">${item.date}</td>
+                            <td style="padding: 8px;">${item.content}</td>
+                            <td style="padding: 8px;">${item.source}</td>
+                            <td style="padding: 8px;"><a href="${item.url}" target="_blank">Link</a></td>
+                        </tr>`;
+                        resultsBody.innerHTML += row;
+                    });
+                    document.getElementById("results_table").style.display = "block";
+                } else {
+                    alert(data.message);
                 }
+            })
+            .catch(() => {
+                document.getElementById("loading_message").style.display = "none";
+                alert("發生錯誤，請稍後再試！");
             });
         }
-    </script>
+        </script>        
 </body>
 
 </html>
