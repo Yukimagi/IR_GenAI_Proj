@@ -247,7 +247,7 @@ def fetch_news_data():
     )
 
     # Define all possible topics if "all" is selected
-    topics = ["health", "stock", "sport"] if topic == "all" else [topic]
+    topics = ["health", "stock", "sport"] if topic is None else [topic]
     results = []
     seen_entries = set()
     news_ids = []
@@ -258,7 +258,7 @@ def fetch_news_data():
                 table_name = f"{topic_item}_{table_suffix}"
 
                 # Skip tables that don’t match the specific topic when a specific topic is selected
-                if topic and topic != "all" and not table_name.startswith(topic):
+                if topic and not table_name.startswith(topic):
                     continue
 
                 query = supabase_instance.table(table_name).select(
@@ -266,7 +266,7 @@ def fetch_news_data():
                 )
 
                 # Apply source and date filters
-                if source != "all":
+                if source is not None:
                     query = query.eq("source", source)
                 if date:
                     query = query.eq("date", date)
@@ -319,7 +319,7 @@ def fetch_news_data():
             """
 
             # Apply specific emotion filter if needed
-            if emotion is not None and emotion != "all":
+            if emotion is not None:
                 emotion_value = {"positive": 1, "neutral": 0, "negative": -1}.get(
                     emotion
                 )
