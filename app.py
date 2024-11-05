@@ -241,107 +241,72 @@ def fetch_news_data():
     date = data.get("date")
     emotion = data.get("emotion")
 
-    print(
-        "接收到的過濾條件：",
-        {"新聞來源": source, "主題": topic, "日期": date, "情緒": emotion},
-    )
+    print("接收到的過濾條件：", {"新聞來源": source, "主題": topic, "日期": date, "情緒": emotion})
 
-    # Define all possible topics if "all" is selected
+    # 定義所有可能的 topic
     topics = ["health", "stock", "sport"] if topic is None else [topic]
     results = []
     seen_entries = set()
-    news_ids = []
+    
+    # 將情緒字串轉換成數值
+    emotion_value = {"positive": 1, "neutral": 0, "negative": -1}.get(emotion)
 
     for index, supabase_instance in enumerate([supabase1, supabase2], start=1):
         for topic_item in topics:
             for table_suffix in ["news", "news_API"]:
                 table_name = f"{topic_item}_{table_suffix}"
-
-                # Skip tables that don’t match the specific topic when a specific topic is selected
+                
+                # 跳過與指定 topic 不符合的表格
                 if topic and not table_name.startswith(topic):
                     continue
 
+                # 查詢新聞資料
                 query = supabase_instance.table(table_name).select(
                     "title, date, content, source, url, id"
                 )
 
-                # Apply source and date filters
-                if source is not None:
+                # 應用新聞來源和日期的過濾條件
+                if source:
                     query = query.eq("source", source)
                 if date:
                     query = query.eq("date", date)
-
-                # Execute the query
+                
+                # 執行查詢並獲取數據
                 data = query.execute().data or []
-
-                # 使用列表解析式過濾掉 id 為 None 的項目
+                
                 for item in data:
-                    # 檢查 id 是否為 None，若是則跳過該項目
                     if item["id"] is None:
                         continue  # 跳過 id 為 None 的項目
-
-                    # Create a tuple to identify unique records
+                    
+                    # 避免重複項目
                     unique_key = (item["date"], item["title"], item["source"])
+                    if unique_key in seen_entries:
+                        continue
 
-                    # Add item to results if it's not already in seen_entries
-                    if unique_key not in seen_entries:
-                        seen_entries.add(unique_key)
-                        item["emotion"] = None  # Initialize emotion field
-                        item["topic"] = topic_item  # Add topic to item
-                        results.append(item)
+                    # 如果指定了情緒，則查詢情緒表格，過濾符合條件的情緒
+                    if emotion_value is not None:
+                        sentiment_table = f"{topic_item}_news_sentiment"
+                        emotion_data = supabase_instance.table(sentiment_table).select(
+                            "emotion"
+                        ).eq("news_id", item["id"]).eq("emotion", emotion_value).execute().data
 
-                        # 加入有效的 news_id
-                        news_ids.append(item["id"])
+                        # 若找不到符合情緒條件的數據，跳過該新聞項目
+                        if not emotion_data:
+                            continue
+                    
+                    # 添加到結果中並標記該項目
+                    seen_entries.add(unique_key)
+                    item["emotion"] = emotion if emotion_value is not None else None
+                    item["topic"] = topic_item
+                    results.append(item)
+                    print(results)
 
-    print(results)
-
-    print("===============")
-
-    # Fetch and add emotion data
-    for index, supabase_instance in enumerate([supabase1, supabase2], start=1):
-        for item in results:
-            news_id = item["id"]
-            # 跳過 news_id 為 None 的項目
-            if news_id is None:
-                continue
-            topic_item = item["topic"]  # Use the previously added topic field directly
-            sentiment_table = f"{topic_item}_news_sentiment"
-
-            # Initialize emotion query
-            emotion_query = (
-                supabase_instance.table(sentiment_table)
-                .select("emotion")
-                .eq("news_id", news_id)
-            )
-
-            """
-                emotion is  None 原因: 猜測是重複id !
-            """
-
-            # Apply specific emotion filter if needed
-            if emotion is not None:
-                emotion_value = {"positive": 1, "neutral": 0, "negative": -1}.get(
-                    emotion
-                )
-                # 只在 emotion_value 有效的情況下加入條件
-                if emotion_value is not None:
-                    emotion_query = emotion_query.eq("emotion", emotion_value)
-
-            # Execute emotion query
-            emotion_data = emotion_query.execute().data
-
-            # Add emotion data if found
-            if emotion_data:
-                item["emotion"] = emotion_data[0]["emotion"]
-            else:
-                results.remove(item)  # 刪除該筆item
-
-    # Return results or "No data found" message
+    # 返回結果或 "No data found" 信息
     if results:
         return jsonify(results=results, message="success")
     else:
         return jsonify(message="No data found.")
-
+  
 
 if __name__ == "__main__":
     # 定義app在8080埠運行
