@@ -247,7 +247,7 @@ def fetch_news_data():
     topics = ["health", "stock", "sport"] if topic is None else [topic]
     results = []
     seen_entries = set()
-    
+
     # 將情緒字串轉換成數值
     emotion_value = {"positive": 1, "neutral": 0, "negative": -1}.get(emotion)
 
@@ -255,7 +255,7 @@ def fetch_news_data():
         for topic_item in topics:
             for table_suffix in ["news", "news_API"]:
                 table_name = f"{topic_item}_{table_suffix}"
-                
+
                 # 跳過與指定 topic 不符合的表格
                 if topic and not table_name.startswith(topic):
                     continue
@@ -270,42 +270,52 @@ def fetch_news_data():
                     query = query.eq("source", source)
                 if date:
                     query = query.eq("date", date)
-                
+
                 # 執行查詢並獲取數據
                 data = query.execute().data or []
-                
+
                 for item in data:
                     if item["id"] is None:
                         continue  # 跳過 id 為 None 的項目
-                    
+
                     # 避免重複項目
                     unique_key = (item["date"], item["title"], item["source"])
                     if unique_key in seen_entries:
                         continue
 
-                    # 如果指定了情緒，則查詢情緒表格，過濾符合條件的情緒
-                    if emotion_value is not None:
-                        sentiment_table = f"{topic_item}_news_sentiment"
-                        emotion_data = supabase_instance.table(sentiment_table).select(
-                            "emotion"
-                        ).eq("news_id", item["id"]).eq("emotion", emotion_value).execute().data
+                    # 獲取情緒資料
+                    sentiment_table = f"{topic_item}_news_sentiment"
+                    emotion_query = supabase_instance.table(sentiment_table).select("emotion").eq("news_id", item["id"])
 
-                        # 若找不到符合情緒條件的數據，跳過該新聞項目
-                        if not emotion_data:
-                            continue
-                    
+                    # 只在 emotion_value 有效的情況下加入條件
+                    if emotion_value is not None:
+                        emotion_query = emotion_query.eq("emotion", emotion_value)
+
+                    # 執行情緒查詢
+                    emotion_data = emotion_query.execute().data
+
+                    # 如果查詢到情緒資料，將其添加到 item 中
+                    if emotion_data:
+                        item["emotion"] = emotion_data[0]["emotion"]
+                    else:
+                        # 如果情緒為 "all"，仍然保留該條目，但情緒設為 None
+                        if emotion == "all":
+                            item["emotion"] = None
+                        else:
+                            continue  # 若不是 "all" 且沒有符合條件的情緒，跳過該新聞
+
                     # 添加到結果中並標記該項目
                     seen_entries.add(unique_key)
-                    item["emotion"] = emotion if emotion_value is not None else None
                     item["topic"] = topic_item
                     results.append(item)
-                    print(results)
 
     # 返回結果或 "No data found" 信息
     if results:
         return jsonify(results=results, message="success")
     else:
         return jsonify(message="No data found.")
+
+
   
 
 if __name__ == "__main__":
