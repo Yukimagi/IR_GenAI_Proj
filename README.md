@@ -34,7 +34,7 @@ To set up the project, follow these steps:
 ## Other File
 - Word:Report(TermProject I_word)
 - PDF:Report(TermProject I_pdf)
-- PDF:TermProject I_ppt
+- PDF:TermProject Team4_ppt(pdf)
 
 ## Questions?
 If you have any questions, please contact one of the contributors.
