@@ -19,6 +19,7 @@ To set up the project, follow these steps:
 - **crawl.html**: Helps you fetch the necessary data. (Please retrieve data daily.)
 - **emotion.html**: Dynamic update sentiment score & Let you get sentiment visualization(dynamic).
 - (Notice:短周期得出結果為主，分批顯示可視圖，因為這受限於database的api request量，建議1個月最佳，極限是2年左右，如果有錯誤，可能導致server中斷，再請重開server)
+- **Data.html**: Search article by source、date、sentiment.
 
 ## About Database
 - 請參考word中的資料庫介紹

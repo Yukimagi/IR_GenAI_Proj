@@ -53,9 +53,11 @@ def crawl():
 def emotion():
     return render_template("emotion.html")
 
+
 @app.route("/Data.html")
 def Data():
     return render_template("Data.html")
+
 
 @app.route("/")
 def root():
@@ -163,18 +165,21 @@ def analyze():
 
     return jsonify({"chart": chart_image, "time_series": time_series_image})
 
+
+"""
 @app.route("/fetch_news_data", methods=["POST"])
 def fetch_news_data():
     data = request.json
-    topic = data.get('topic')
-    source = data.get('company')
-    date = data.get('date')
+    topic = data.get("topic")
+    source = data.get("company")
+    date = data.get("date")
+
 
     # Debugging print statements
     print("Received company:", source)
     print("Received topic:", topic)
     print("Received date:", date)
-    '''
+    ##
     # Valid topics and companies
     valid_topics = ["all", "stock", "health", "sport"]
     valid_companies = ["all", "Blog.jp", "China Times"]
@@ -186,9 +191,16 @@ def fetch_news_data():
     if source not in valid_companies:
         print("Invalid company:", source)
         return jsonify(message="Invalid company"), 400
-    '''
+    ##
     # Define table names based on topic
-    tables = ["health_news", "health_news_API", "stock_news", "stock_news_API", "sports_news", "sports_news_API"]
+    tables = [
+        "health_news",
+        "health_news_API",
+        "stock_news",
+        "stock_news_API",
+        "sports_news",
+        "sports_news_API",
+    ]
     results = []
     seen_entries = set()
 
@@ -197,32 +209,202 @@ def fetch_news_data():
             continue
 
         for db in [supabase1, supabase2]:
-            query = db.table(table).select("title, date, content, source, url")
-            
+            query = db.table(table).select("title, date, content, source, url,id")
+
             if source:
                 query = query.eq("source", source)
             if date:
                 query = query.eq("date", date)
 
             data = query.execute().data or []
-            
+
             for item in data:
                 # Create a tuple to identify unique records
-                unique_key = (item['date'], item['title'], item['source'])
-                
+                unique_key = (item["date"], item["title"], item["source"])
+
                 # Add item to results if it's not already in seen_entries
                 if unique_key not in seen_entries:
                     seen_entries.add(unique_key)
                     results.append(item)
 
+    if results:
+        return jsonify(results=results, message="success")
+    else:
+        return jsonify(message="No data found.")"""
 
+
+@app.route("/fetch_news_data", methods=["POST"])
+def fetch_news_data():
+    data = request.json
+    topic = data.get("topic")
+    source = data.get("company")
+    date = data.get("date")
+    emotion = data.get("emotion")
+
+    print("接收到的過濾條件：", {"新聞來源": source, "主題": topic, "日期": date, "情緒": emotion})
+
+    # 定義所有可能的 topic
+    topics = ["health", "stock", "sport"] if topic is None else [topic]
+    results = []
+    seen_entries = set()
+
+    # 將情緒字串轉換成數值
+    emotion_value = {"positive": 1, "neutral": 0, "negative": -1}.get(emotion)
+
+    for index, supabase_instance in enumerate([supabase1, supabase2], start=1):
+        for topic_item in topics:
+            for table_suffix in ["news", "news_API"]:
+                table_name = f"{topic_item}_{table_suffix}"
+
+                # 跳過與指定 topic 不符合的表格
+                if topic and not table_name.startswith(topic):
+                    continue
+
+                # 查詢新聞資料
+                query = supabase_instance.table(table_name).select(
+                    "title, date, content, source, url, id"
+                )
+
+                # 應用新聞來源和日期的過濾條件
+                if source:
+                    query = query.eq("source", source)
+                if date:
+                    query = query.eq("date", date)
+
+                # 執行查詢並獲取數據
+                data = query.execute().data or []
+
+                for item in data:
+                    if item["id"] is None:
+                        continue  # 跳過 id 為 None 的項目
+
+                    # 避免重複項目
+                    unique_key = (item["date"], item["title"], item["source"])
+                    if unique_key in seen_entries:
+                        continue
+
+                    # 獲取情緒資料
+                    sentiment_table = f"{topic_item}_news_sentiment"
+                    emotion_query = supabase_instance.table(sentiment_table).select("emotion").eq("news_id", item["id"])
+
+                    # 只在 emotion_value 有效的情況下加入條件
+                    if emotion_value is not None:
+                        emotion_query = emotion_query.eq("emotion", emotion_value)
+
+                    # 執行情緒查詢
+                    emotion_data = emotion_query.execute().data
+
+                    # 如果查詢到情緒資料，將其添加到 item 中
+                    if emotion_data:
+                        item["emotion"] = emotion_data[0]["emotion"]
+                    else:
+                        # 如果情緒為 "all"，仍然保留該條目，但情緒設為 None
+                        if emotion == "all":
+                            item["emotion"] = None
+                        else:
+                            continue  # 若不是 "all" 且沒有符合條件的情緒，跳過該新聞
+
+                    # 添加到結果中並標記該項目
+                    seen_entries.add(unique_key)
+                    item["topic"] = topic_item
+                    results.append(item)
+
+    # 返回結果或 "No data found" 信息
     if results:
         return jsonify(results=results, message="success")
     else:
         return jsonify(message="No data found.")
 
 
-    
+  
+
 if __name__ == "__main__":
     # 定義app在8080埠運行
     app.run(host="0.0.0.0", port=8000, debug=True)
+
+
+""" 此版本會刪除resultd 內item["emotion"] = None的資料
+@app.route("/fetch_news_data", methods=["POST"])
+def fetch_news_data():
+    data = request.json
+    topic = data.get("topic")
+    source = data.get("company")
+    date = data.get("date")
+    emotion = data.get("emotion")
+
+    print(
+        "接收到的過濾條件：",
+        {"公司": source, "主題": topic, "日期": date, "情緒": emotion},
+    )
+
+    # Define all possible topics if "all" is selected
+    topics = ["health", "stock", "sport"] if topic == "all" else [topic]
+    results = []
+    seen_entries = set()
+    news_ids = []
+    # 查詢新聞數據
+    for supabase_instance in [supabase1, supabase2]:
+        for topic_item in topics:
+            for table_suffix in ["news", "news_API"]:
+                table_name = f"{topic_item}_{table_suffix}"
+
+                # 若選擇了特定主題，則跳過不匹配的表
+                if topic and topic != "all" and not table_name.startswith(topic):
+                    continue
+
+                query = supabase_instance.table(table_name).select(
+                    "title, date, content, source, url, id"
+                )
+
+                # Apply source and date filters
+                if source != "all":
+                    query = query.eq("source", source)
+                if date:
+                    query = query.eq("date", date)
+
+                # Execute the query
+                data = query.execute().data or []
+
+                for item in data:
+                    # Create a tuple to identify unique records
+                    unique_key = (item["date"], item["title"], item["source"])
+
+                    # Add item to results if it's not already in seen_entries
+                    if unique_key not in seen_entries:
+                        seen_entries.add(unique_key)
+                        item["emotion"] = None  # Initialize emotion field
+                        item["topic"] = topic_item  # Add topic to item
+                        results.append(item)
+                        news_ids.append(item["id"])
+    print(results)
+    print("news ids:", news_ids)
+
+    # 批量查詢情緒數據
+    emotion_filter = {"positive": 1, "neutral": 0, "negative": -1}.get(emotion, None)
+    for supabase_instance in [supabase1, supabase2]:
+        for topic_item in topics:
+            sentiment_table = f"{topic_item}_news_sentiment"
+
+            emotion_query = (
+                supabase_instance.table(sentiment_table)
+                .select("emotion, news_id")
+                .in_("news_id", news_ids)
+            )
+            if emotion != "all":
+                emotion_query = emotion_query.eq("emotion", emotion_filter)
+
+            # Execute emotion query
+            emotion_data = emotion_query.execute().data
+
+            # 過濾掉沒有情緒數據的項目
+            results = [result for result in results if result["id"] in emotion_data]
+            for result in results:
+                result["emotion"] = emotion_data.get(result["id"])
+
+    # 返回結果或 "No data found" 訊息
+    return jsonify(results=results, message="success" if results else "No data found.")
+
+
+
+
+"""
