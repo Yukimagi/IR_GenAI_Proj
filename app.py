@@ -67,9 +67,9 @@ def root():
 @app.route("/fetch_news", methods=["GET", "POST"])
 def fetch_news():
     data = request.get_json()
-    company = data.get("company")
-    topic = data.get("topic")
-    pages = data.get("pages")
+    company = data.get('company')
+    topic = data.get('topic')
+    pages = data.get('pages')
 
     # 確定執行的腳本名稱
     script_map = {
@@ -82,29 +82,25 @@ def fetch_news():
         ("tvbs", "stock"): "Proj_tvbs/Proj_tvbs_Stock.py",
         ("tvbs", "health"): "Proj_tvbs/Proj_tvbs_health.py",
         ("tvbs", "sports"): "Proj_tvbs/Proj_tvbs_sports.py",
+        ("api", "stock"): "Proj_API/stock_API_news.py",
+        ("api", "health"): "Proj_API/health_API_news.py",
+        ("api", "sports"): "Proj_API/sport_API_news.py"
     }
-
+    
     script_name = script_map.get((company, topic))
-
+    
     if script_name is None:
         return jsonify({"message": "Invalid company or topic"}), 400
 
     try:
         # 呼叫對應的 Python 檔案，並傳遞頁數參數
-        result = subprocess.run(
-            ["python", script_name, str(pages)], capture_output=True, text=True
-        )
-
+        result = subprocess.run(['python', script_name, str(pages)], capture_output=True, text=True)
+        
         # 檢查腳本執行狀態
         if result.returncode == 0:
             return jsonify({"message": "success"})
         else:
-            return (
-                jsonify(
-                    {"message": "Error executing script", "details": result.stderr}
-                ),
-                500,
-            )
+            return jsonify({"message": "Error executing script", "details": result.stderr}), 500
     except Exception as e:
         return jsonify({"message": f"Server error: {str(e)}"}), 500
 
