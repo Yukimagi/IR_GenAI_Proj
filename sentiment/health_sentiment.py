@@ -62,9 +62,9 @@ def bert_sentiment_analysis(news):
     }
 
 
-async def fetch_data_by_date(table_name, date, batch_size=1000):
+async def fetch_all_data(table_name, batch_size=1000):
     """
-    從 Supabase 表中按日期篩選數據，分批次提取數據
+    分批次從 Supabase 表中提取數據，直到提取完成。
     """
     offset = 0
     all_data = []
@@ -73,19 +73,20 @@ async def fetch_data_by_date(table_name, date, batch_size=1000):
         response = (
             supabase.from_(table_name)
             .select("*")
-            .eq("date", date)
             .range(offset, offset + batch_size - 1)
             .execute()
         )
         data = response.data
 
         if not data:
-            break  # 當沒有更多數據時，結束循環
+            # 當沒有更多數據時，結束循環
+            break
 
         all_data.extend(data)
         offset += batch_size
+
         print(
-            f"Fetched {len(data)} records from {table_name} for date {date}, total so far: {len(all_data)}"
+            f"Fetched {len(data)} records from {table_name}, total so far: {len(all_data)}"
         )
 
     return all_data
@@ -93,7 +94,7 @@ async def fetch_data_by_date(table_name, date, batch_size=1000):
 
 async def analyze_and_store_sentiments(date):
     # 從 health_news 表中按日期提取數據
-    news_data_health = await fetch_data_by_date("health_news", date)
+    news_data_health = await fetch_all_data("health_news")
 
     # 合併來自兩個表的數據
     news_data = news_data_health
