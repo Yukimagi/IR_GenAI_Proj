@@ -4,7 +4,6 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 import matplotlib.pyplot as plt
-from flask import Flask, request, jsonify
 
 # 加載 .env 文件，確保 SUPABASE_URL 和 SUPABASE_KEY 被正確讀取
 load_dotenv()
@@ -31,6 +30,7 @@ def bert_sentiment_analysis(news):
     """
     使用 nlptown 的多語言 BERT 模型進行情緒分析
     news: string 文章內容
+
     return: dict 包含 sentiment_score, star, 和 emotion (1: positive, 0: neutral, -1: negative)
     """
     result = sentiment_analyzer(news[:512])[0]  # 模型有 token 限制，這裡截取前512個字元
@@ -92,15 +92,15 @@ async def fetch_all_data(table_name, batch_size=1000):
     return all_data
 
 
-async def analyze_and_store_sentiments(date):
-    # 從 health_news 表中按日期提取數據
+async def analyze_and_store_sentiments():
+    # 從 health_news 表中提取所有數據 (health_news_API 表中的數據也會被提取)
     news_data_health = await fetch_all_data("health_news")
 
     # 合併來自兩個表的數據
     news_data = news_data_health
 
     if not news_data:
-        print("No news data found for the specified date.")
+        print("No news data found in health_news.")
         return
 
     for news in news_data:
@@ -117,20 +117,29 @@ async def analyze_and_store_sentiments(date):
                 f"Sentiment for news ID {news['id']}: {star} stars ({emotion}), Score: {sentiment_score}"
             )
 
+            # # 檢查該 news_id 是否已存在於 health_news_sentiment 表中
+            # existing_sentiment = supabase.from_("health_news_sentiment").select("id").eq("news_id", news["id"]).execute()
+
+            # # 如果該新聞已存在，則刪除舊記錄
+            # if existing_sentiment.data:
+            #     supabase.from_("health_news_sentiment").delete().eq("news_id", news["id"]).execute()
+            #     print(f"Deleted old sentiment analysis for news ID: {news['id']}")
+
             # 插入新的情緒分析結果
             insert_response = (
                 supabase.from_("health_news_sentiment")
                 .insert(
                     {
-                        "news_id": news["id"],
-                        "sentiment": sentiment_score,
-                        "star": star,
-                        "emotion": emotion,
+                        "news_id": news["id"],  # 將新聞的 id 傳入 news_id 欄位
+                        "sentiment": sentiment_score,  # 儲存置信度分數 (浮點數)
+                        "star": star,  # 儲存星級 (1 到 5)
+                        "emotion": emotion,  # 儲存情緒類型 (-1, 0, 1)
                     }
                 )
                 .execute()
             )
 
+            # 使用 response.data 確認是否成功插入數據
             if insert_response.data:
                 print(f"Successfully inserted sentiment for news ID: {news['id']}")
             else:
@@ -146,9 +155,9 @@ def plot_statistics():
     """
     生成圖表，顯示情緒和星級分佈
     """
+    # 情緒分佈圖表
     plt.figure(figsize=(10, 5))
 
-    # 情緒分佈圖表
     plt.subplot(1, 2, 1)
     emotions = list(emotion_counts.keys())
     emotion_values = list(emotion_counts.values())
@@ -170,22 +179,17 @@ def plot_statistics():
     plt.show()
 
 
-app = Flask(__name__)
+def main():
+    """
+    主程式入口，負責觸發情緒分析和存儲過程，並在完成後生成圖表
+    """
+    print("Starting sentiment analysis...")
+    asyncio.run(analyze_and_store_sentiments())
+    print("Sentiment analysis completed.")
 
-
-@app.route("/analyze_health", methods=["POST"])
-def analyze_health():
-    data = request.get_json()
-    date = data.get("date")
-
-    if not date:
-        return jsonify({"error": "Date not provided"}), 400
-
-    asyncio.run(analyze_and_store_sentiments(date))
+    # 在分析完成後生成統計圖表
     plot_statistics()
-
-    return jsonify({"message": "Sentiment analysis completed and chart generated."})
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    main()
