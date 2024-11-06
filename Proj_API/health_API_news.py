@@ -145,7 +145,7 @@ def fetch_news(KEYWORD):
 
 def insert_news_if_not_exists(health_id, title, news_date, content, source, news_url):
     # 檢查是否已存在相同的記錄
-    check_response = supabase.table("health_news_API").select("*").eq("healthID", health_id)\
+    check_response = supabase.table("health_news").select("*").eq("healthID", health_id)\
         .eq("title", title)\
         .eq("date", news_date)\
         .eq("content", content)\
@@ -153,7 +153,7 @@ def insert_news_if_not_exists(health_id, title, news_date, content, source, news
     
     # 如果沒有找到重複的記錄，才進行插入
     if not check_response.data:
-        insert_response = supabase.table("health_news_API").insert({
+        insert_response = supabase.table("health_news").insert({
             "healthID": int(health_id),
             "title": title,
             "date": news_date,
