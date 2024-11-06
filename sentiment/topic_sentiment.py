@@ -82,8 +82,8 @@ async def fetch_data_within_date(
 
     # 遍歷 supabase1 和 supabase2 數據庫
     for db_index, supabase in enumerate([supabase1, supabase2], start=1):
-        # 遍歷 "news" 和 "news_API" 表
-        for table_suffix in ["news", "news_API"]:
+        # 遍歷 "news" 表
+        for table_suffix in ["news"]:
             table_name = f"{topic}_{table_suffix}"
             offset = 0
 
